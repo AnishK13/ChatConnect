@@ -1,0 +1,11 @@
+Technologies in mind:
+C++
+Boost.Asio
+Sockets
+
+Purpose:
+To enhance my OS concepts. 
+To study about Multithreading, TCP Sockets, maybe OSI Layer...
+
+Working in mind:
+A platform that will allow users to join a room and chat with each other
