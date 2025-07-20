@@ -1,59 +1,77 @@
 #ifndef MESSAGE_HPP
 #define MESSAGE_HPP
 
-#include <cstdlib>
+#include <iostream>
+#include <string>
 #include <cstring>
-#include <cstdio>
+
+/*
+           BODY
+______________________________
+|         |                   |
+| header  |     message       |
+|_________|___________________|
+
+*/
 
 class Message {
-    public: 
-        Message() : bodyLength_(0) {}
-        
-        enum {maxBytes = 512};
-        enum {header = 4};
+public:
+    static constexpr int messageSize = 512; // max value of the message
+    static constexpr int headerSize = 4;    // the starting 4 bytes represent size of actual message
 
-        char* getData(){
-            int length = header + bodyLength_;
-            char result[length+1] = "";
-            strncpy(result, data, length);
-            return result;
+    Message() : bodyLength(0) {}
+
+    Message(const std::string& message) {
+        if (message.size() > messageSize) {
+            bodyLength = messageSize;
+        } else {
+            bodyLength = message.size();
         }
 
-        char* getBody(){
-            char* data = getData();
-            char result[bodyLength_+1] = "";
-            strncpy(result, data+header, bodyLength_); 
-            return result;
-        }
+        encodeHeader(); // this initializes the header, by giving value to first 4 bytes
+        std::memcpy(data + headerSize, message.c_str(), bodyLength); // this adds the remaining data after first 4 bytes
+    }
 
-        size_t getNewBodyLength(size_t newLength){
-            if(newLength > maxBytes){
-                return maxBytes;
-            }
-            return newLength;
-        }
+    void encodeHeader() {
+        char new_header[headerSize + 1] = "";
+        snprintf(new_header, sizeof(new_header), "%4d", static_cast<int>(bodyLength));
+        std::memcpy(data, new_header, headerSize);
+    }
 
-        void encodeHeader(){
-            char new_header[header+1] = "";
-            sprintf(new_header, "%4d", static_cast<int>(bodyLength_));
-            memcpy(data, new_header, header);
-        }
-        
-        bool decodeHeader(){
-            char new_header[header+1] = "";
-            strncat(new_header, data, header);
-            int header = atoi(new_header);
-            if(header>maxBytes){
-                bodyLength_ = 0;
-                return false;
-            }
-            bodyLength_ = header;
-            return true;
-        }
+    bool decodeHeader() {
+        char new_header[headerSize + 1] = "";
+        std::strncpy(new_header, data, headerSize);
+        new_header[headerSize] = '\0';
 
-    private: 
-        char data[header+maxBytes];
-        size_t bodyLength_;
+        int headerValue = std::atoi(new_header);
+        if (headerValue < 0 || headerValue > messageSize) {
+            bodyLength = 0;
+            return false;
+        }
+        bodyLength = headerValue;
+        return true;
+    }
+
+    void printMessage() {
+        std::cout << "Message received: " << getBody() << std::endl;
+    }
+
+    std::string getData() const {
+        int length = headerSize + bodyLength;
+        return std::string(data, length);
+    }
+
+    std::string getBody() const {
+        return std::string(data + headerSize, bodyLength);
+    }
+
+    size_t getBodyLength() const {
+        return bodyLength;
+    }
+
+private:
+    char data[headerSize + messageSize]; // character array to store header and actual message
+    size_t bodyLength;                   // size of actual messgae
 };
 
-#endif MESSAGE_HPP
+#endif 
