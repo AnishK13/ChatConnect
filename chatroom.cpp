@@ -47,7 +47,6 @@ void Session::async_read() {
     );
 }
 
-
 void Session::async_write(std::string messageBody, size_t messageLength){
     auto write_handler = [&](boost::system::error_code ec, std::size_t bytes_transferred){
         if(!ec){
@@ -96,7 +95,6 @@ void accept_connection(boost::asio::io_context &io, char *port,tcp::acceptor &ac
         accept_connection(io, port,acceptor, room, endpoint);
     });
 }
-
 
 int main(int argc, char *argv[]) {
     try {
